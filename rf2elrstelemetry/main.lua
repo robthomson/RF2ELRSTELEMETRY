@@ -3,15 +3,12 @@
 --
 
 
-bit32 = assert(loadfile("/scripts/rf2elrstelemetry/libs/bit32.lua"))()
+local CRSF_FRAME_CUSTOM_TELEM   = 0x88
 
 sensorTABLE = {}
 local sensorRecheck = {}
 local sensorRecheckInterval = 5 -- we recheck the sensor every 5 seconds to make sure it exits / recreate if needs be.
 local init = true
-
-
--- compatability function for edge tx to simplify porting of code
 
 local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
@@ -23,7 +20,8 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 		end
 
 		 if os.clock() >= (sensorRecheck[uid] + sensorRecheckInterval) or init == true then
-			print("Checking sensor exists: [" .. name .. "]")
+			
+			--print("Checking sensor exists: [" .. name .. "]")
 			sensorTABLE[uid] = {}
 			sensorTABLE[uid]  = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = id})
 			sensorRecheck[uid] = os.clock()
@@ -31,20 +29,20 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 
 			if sensorTABLE[uid] == nil then
 			
-				print("Creating sensor: " .. name .. " [" .. uid .. "]")
+				--print("Creating sensor: " .. name .. " [" .. uid .. "]")
 
 				sensorTABLE[uid] = model.createSensor()
 				sensorTABLE[uid]:name(name)
 				sensorTABLE[uid]:appId(id)
 				sensorTABLE[uid]:physId(instance)
-				sensorTABLE[uid]:maximum(65000)				-- review these as ideally we lookup
-				sensorTABLE[uid]:minimum(-65000)			-- on a diff table and set suitable values
+				sensorTABLE[uid]:maximum(65000)	
+				sensorTABLE[uid]:minimum(-65000)	
 				if dec ~= nil then
 					sensorTABLE[uid]:decimals(dec)
 				end	
-				if unit ~= nil then						-- setting this sets the unit correctly
-					--sensorTABLE[uid]:unit(unit) 		-- but not the protocol unit.  need to
-				end										-- manually setting protocol un
+				if unit ~= nil then	
+					--sensorTABLE[uid]:unit(unit) 	
+				end										
 			end	
 
 
@@ -58,45 +56,37 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	end		
 end
 
-
---[[
-local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
-	if id ~= nil then
-
-	
-		local sensorSOURCE = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = id})
-		
-		if sensorSOURCE == nil then
-			print("Creating sensor: " .. name)
-			sensorSOURCE = model.createSensor()
-			sensorSOURCE:name(name)
-			sensorSOURCE:appId(id)
-			sensorSOURCE:physId(instance)
-			sensorSOURCE:maximum(65000)				-- review these as ideally we lookup
-			sensorSOURCE:minimum(-65000)			-- on a diff table and set suitable values
-			if dec ~= nil then
-				sensorSOURCE:decimals(dec)
-			end	
-			if unit ~= nil then						-- setting this sets the unit correctly
-				--sensorSOURCE:unit(unit) 			-- but not the protocol unit.  need to
-			end										-- manually setting protocol un
-		else
-			sensorSOURCE:value(value)	
-		end			
-	
-	end		
-end
-]]--
-
--- compatability function for edge tx to simplify porting of code
 local function crossfireTelemetryPop()
 	local command, data = crsf.popFrame()
 	return command,data
 end
 
 
+local function trim(n)
+    return n & 0xFFFFFFFF
+end
 
-local CRSF_FRAME_CUSTOM_TELEM   = 0x88
+local function mask(w)
+    return ~(0xFFFFFFFF << w)
+end
+
+local function lshift(x, disp)
+    return trim(x << disp)
+end
+
+local function fieldargs(f, w)
+    w = w or 1
+    assert(f >= 0, "field cannot be negative")
+    assert(w > 0, "width must be positive")
+    assert(f + w <= 32, "trying to access non-existent bits")
+    return f, w
+end
+
+local function extract(n, field, width)
+    local f, w = fieldargs(field, width)
+    return (n >> f) & mask(w)
+end
+
 
 local function decU8(data, pos)
     return data[pos], pos+1
@@ -108,7 +98,7 @@ local function decS8(data, pos)
 end
 
 local function decU16(data, pos)
-    return bit32.lshift(data[pos],8) + data[pos+1], pos+2
+    return lshift(data[pos],8) + data[pos+1], pos+2
 end
 
 local function decS16(data, pos)
@@ -117,8 +107,8 @@ local function decS16(data, pos)
 end
 
 local function decU12U12(data, pos)
-    local a = bit32.lshift(bit32.extract(data[pos],0,4),8) + data[pos+1]
-    local b = bit32.lshift(bit32.extract(data[pos],4,4),8) + data[pos+2]
+    local a = lshift(extract(data[pos],0,4),8) + data[pos+1]
+    local b = lshift(extract(data[pos],4,4),8) + data[pos+2]
     return a,b,pos+3
 end
 
@@ -128,7 +118,7 @@ local function decS12S12(data, pos)
 end
 
 local function decU24(data, pos)
-    return bit32.lshift(data[pos],16) + bit32.lshift(data[pos+1],8) + data[pos+2], pos+3
+    return lshift(data[pos],16) + lshift(data[pos+1],8) + data[pos+2], pos+3
 end
 
 local function decS24(data, pos)
@@ -137,7 +127,7 @@ local function decS24(data, pos)
 end
 
 local function decU32(data, pos)
-    return bit32.lshift(data[pos],24) + bit32.lshift(data[pos+1],16) + bit32.lshift(data[pos+2],8) + data[pos+3], pos+4
+    return lshift(data[pos],24) + lshift(data[pos+1],16) + lshift(data[pos+2],8) + data[pos+3], pos+4
 end
 
 local function decS32(data, pos)
@@ -153,7 +143,7 @@ local function decCells(data, pos)
     do
         val,pos = decU8(data,pos)
         val = val > 0 and val + 200 or 0
-        vol = bit32.lshift(cnt,24) + bit32.lshift(i-1, 16) + val
+        vol = lshift(cnt,24) + lshift(i-1, 16) + val
         setTelemetryValue(0x0021, 0, 0, vol, UNIT_CELLS, 2, "Cels")
     end
     return nil, pos
@@ -379,176 +369,6 @@ local RFSensors = {
     [0xFE07]  = { name="DBG7",    unit=UNIT_RAW,                 prec=0,    dec=decS32  },
 }
 
-
-local RFSensorsEthos = {
-    -- Heartbeat (millisecond uptime % 60000)
-    [0x0001]  = { name="BEAT" },
-
-    -- Main battery voltage
-    [0x0011]  = { name="Vbat"},
-    -- Main battery current
-    [0x0012]  = { name="Curr"},
-    -- Main battery used capacity
-    [0x0013]  = { name="Capa"},
-    -- Main battery State-of-Charge / fuel level
-    [0x0014]  = { name="Fuel"},
-
-    -- Main battery cell count
-    [0x0020]  = { name="Cel#"},
-    -- Main battery cell voltages
-    [0x0021]  = { name="Cels"},
-
-    -- Control Combined (hires)
-    [0x0030]  = { name="Ctrl"},
-    -- Roll Control angle
-    [0x0031]  = { name="CRol"},
-    -- Pitch Control angle
-    [0x0032]  = { name="CPtc"},
-    -- Yaw Control angle
-    [0x0033]  = { name="CYaw"},
-    -- Collective Control angle
-    [0x0034]  = { name="CCol"},
-    -- Throttle output %
-    [0x0035]  = { name="Thr "},
-
-    -- ESC voltage
-    [0x0041]  = { name="EscV"},
-    -- ESC current
-    [0x0042]  = { name="EscI"},
-    -- ESC capacity/consumption
-    [0x0043]  = { name="EscC"},
-    -- ESC eRPM
-    [0x0044]  = { name="EscR"},
-    -- ESC PWM/Power
-    [0x0045]  = { name="EscP"},
-    -- ESC throttle
-    [0x0046]  = { name="Esc%"},
-    -- ESC temperature
-    [0x0047]  = { name="EscT"},
-    -- ESC / BEC temperature
-    [0x0048]  = { name="BecT"},
-    -- ESC / BEC voltage
-    [0x0049]  = { name="BecV"},
-    -- ESC / BEC current
-    [0x004A]  = { name="BecI"},
-    -- ESC Status Flags
-    [0x004F]  = { name="EscF"},
-
-    -- Combined ESC voltage
-    [0x0080]  = { name="Vesc"},
-    -- BEC voltage
-    [0x0081]  = { name="Vbec"},
-    -- BUS voltage
-    [0x0082]  = { name="Vbus"},
-    -- MCU voltage
-    [0x0083]  = { name="Vmcu"},
-
-    -- Combined ESC current
-    [0x0090]  = { name="Iesc"},
-    -- BEC current
-    [0x0091]  = { name="Ibec"},
-    -- BUS current
-    [0x0092]  = { name="Ibus"},
-    -- MCU current
-    [0x0093]  = { name="Imcu"},
-
-    -- Combined ESC temeperature
-    [0x00A0]  = { name="Tesc"},
-    -- BEC temperature
-    [0x00A1]  = { name="Tbec"},
-    --MCU temperature
-    [0x00A3]  = { name="Tmcu"},
-
-    -- Heading (combined gyro+mag+GPS)
-    [0x00B1]  = { name="Hdg "},
-    -- Altitude (combined baro+GPS)
-    [0x00B2]  = { name="Alt "},
-    -- Variometer (combined baro+GPS)
-    [0x00B3]  = { name="Var "},
-
-    -- Headspeed
-    [0x00C0]  = { name="Hspd"},
-    -- Tailspeed
-    [0x00C1]  = { name="Tspd"},
-
-    -- Attitude (hires combined)
-    [0x0100]  = { name="Attd"},
-    -- Attitude pitch
-    [0x0101]  = { name="Ptch"},
-    -- Attitude roll
-    [0x0102]  = { name="Roll"},
-    -- Attitude yaw
-    [0x0103]  = { name="Yaw "},
-
-    -- Acceleration (hires combined)
-    [0x0110]  = { name="Accl"},
-    -- Acceleration X
-    [0x0111]  = { name="AccX"},
-    -- Acceleration Y
-    [0x0112]  = { name="AccY"},
-    -- Acceleration Z
-    [0x0113]  = { name="AccZ"},
-
-    -- GPS Satellite count
-    [0x0121]  = { name="Sats"},
-    -- GPS PDOP
-    [0x0122]  = { name="PDOP"},
-    -- GPS HDOP
-    [0x0123]  = { name="HDOP"},
-    -- GPS VDOP
-    [0x0124]  = { name="VDOP"},
-    -- GPS Coordinates
-    [0x0125]  = { name="GPS "},
-    -- GPS altitude
-    [0x0126]  = { name="GAlt"},
-    -- GPS heading
-    [0x0127]  = { name="GHdg"},
-    -- GPS ground speed
-    [0x0128]  = { name="GSpd"},
-    -- GPS home distance
-    [0x0129]  = { name="GDis"},
-    -- GPS home direction
-    [0x012A]  = { name="GDir"},
-
-    -- CPU load
-    [0x0141]  = { name="CPU%"},
-    -- System load
-    [0x0142]  = { name="SYS%"},
-    -- Realtime CPU load
-    [0x0143]  = { name="RT% "},
-
-    -- Model ID
-    [0x0200]  = { name="MDL#"},
-    -- Flight mode flags
-    [0x0201]  = { name="Mode"},
-    -- Arming disable flags
-    [0x0202]  = { name="ARM "},
-    -- Rescue state
-    [0x0203]  = { name="Resc"},
-    -- Governor state
-    [0x0204]  = { name="Gov "},
-
-    -- Current PID profile
-    [0x0211]  = { name="PID#"},
-    -- Current Rate profile
-    [0x0212]  = { name="RTE#"},
-    -- Current LED profile
-    [0x0213]  = { name="LED#"},
-    -- Adjustment function
-    [0x0220]  = { name="ADJ "},
-	
-    -- Debug
-    [0xFE00]  = { name="DBG0"},
-    [0xFE01]  = { name="DBG1"},
-    [0xFE02]  = { name="DBG2"},
-    [0xFE03]  = { name="DBG3",},
-    [0xFE04]  = { name="DBG4",},
-    [0xFE05]  = { name="DBG5",},
-    [0xFE06]  = { name="DBG6",},
-    [0xFE07]  = { name="DBG7",},
-}
-
-
 local function crossfirePop()
     local command, data = crossfireTelemetryPop()
 	
@@ -561,7 +381,7 @@ local function crossfirePop()
                 local sensor = RFSensors[sid]
                 if sensor then
                     val,ptr = sensor.dec(data, ptr)
-                    if val then
+                    if val then				
                         setTelemetryValue(sid, 0, 0, val, sensor.unit, sensor.prec, sensor.name)
                     end
                 else
