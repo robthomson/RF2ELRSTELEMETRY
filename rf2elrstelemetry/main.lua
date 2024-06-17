@@ -3,7 +3,7 @@
 --
 
 
-bit32 = assert(loadfile("/scripts/rf2telemetry/libs/bit32.lua"))()
+bit32 = assert(loadfile("/scripts/rf2elrstelemetry/libs/bit32.lua"))()
 
 sensorTABLE = {}
 local sensorRecheck = {}
