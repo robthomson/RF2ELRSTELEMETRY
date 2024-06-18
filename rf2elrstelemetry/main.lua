@@ -11,10 +11,12 @@ local sensorRecheckInterval = 60
 local initialiseTime = 30
 local initialise = os.clock()
 
+
 local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
 
 		local uid = id .. "_" .. instance
+		local decimalTable = {10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000}
 		
 		if sensorRecheck[uid] == nil then
 			sensorRecheck[uid] = os.clock()
@@ -48,18 +50,19 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 		
 			if dec ~= nil then
 				sensorTABLE[uid]:decimals(dec)
-				--sensorTABLE[uid]:protocolDecimals(dec)
 			end	
 			if unit ~= nil then	
 				sensorTABLE[uid]:unit(unit) 
 				sensorTABLE[uid]:protocolUnit(unit)	
-			end										
-
-
+			end	
 
 		end
 
 		if sensorTABLE[uid] ~= nil then
+			-- scale the value if we use decimals or they will not match
+			if dec ~= nil and value ~= nil and dec > 0 then		
+					value = value / decimalTable[dec]	
+			end				
 			sensorTABLE[uid]:value(value)	
 		end
 		
@@ -405,16 +408,10 @@ local function crossfirePop()
     return false
 end
 
-
-
-
-
-
 local function crossfirePopAll()
   while crossfirePop() do end
 end
 
- 
 local function init()
   system.registerTask({name="RF2 ELRS Telemetry", key="pasfkas", wakeup=crossfirePopAll})
 end
