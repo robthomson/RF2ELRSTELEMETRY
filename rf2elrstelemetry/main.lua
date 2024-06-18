@@ -7,8 +7,9 @@ local CRSF_FRAME_CUSTOM_TELEM   = 0x88
 
 sensorTABLE = {}
 local sensorRecheck = {}
-local sensorRecheckInterval = 5 -- we recheck the sensor every 5 seconds to make sure it exits / recreate if needs be.
-local init = true
+local sensorRecheckInterval = 60 
+local initialiseTime = 30
+local initialise = os.clock()
 
 local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
@@ -19,31 +20,41 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 			sensorRecheck[uid] = os.clock()
 		end
 
-		 if os.clock() >= (sensorRecheck[uid] + sensorRecheckInterval) or init == true then
+		-- check every now and again that the sensor exists.  if not - create it.
+		-- we run this cycle every loop until initialiseTime expires.
+		-- this simple ensures that all sensors are gathered on first power uptime
+		-- after that we drop to low priority checking set by sensorRecheckInterval
+		if (os.clock() >= (sensorRecheck[uid] + sensorRecheckInterval)) or (os.clock() <= (initialise) + initialiseTime) then
 			
-			--print("Checking sensor exists: [" .. name .. "]")
+			print("Checking sensor exists: [" .. name .. "]")
 			sensorTABLE[uid] = {}
 			sensorTABLE[uid]  = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = id})
 			sensorRecheck[uid] = os.clock()
-			init = false
 
+			-- create sensor if it does not exist
 			if sensorTABLE[uid] == nil then
-			
-				--print("Creating sensor: " .. name .. " [" .. uid .. "]")
-
+				print("Creating sensor: [" .. name .. "]")
 				sensorTABLE[uid] = model.createSensor()
 				sensorTABLE[uid]:name(name)
 				sensorTABLE[uid]:appId(id)
 				sensorTABLE[uid]:physId(instance)
-				sensorTABLE[uid]:maximum(65000)	
-				sensorTABLE[uid]:minimum(-65000)	
-				if dec ~= nil then
-					sensorTABLE[uid]:decimals(dec)
-				end	
-				if unit ~= nil then	
-					--sensorTABLE[uid]:unit(unit) 	
-				end										
 			end	
+		
+			-- we always re-set these values below on a check cycle.
+			-- this is to ensure that if a user edits the sensor that
+			-- we put it back to the correct settings.
+			sensorTABLE[uid]:maximum(65000)	
+			sensorTABLE[uid]:minimum(-65000)	
+		
+			if dec ~= nil then
+				sensorTABLE[uid]:decimals(dec)
+				--sensorTABLE[uid]:protocolDecimals(dec)
+			end	
+			if unit ~= nil then	
+				sensorTABLE[uid]:unit(unit) 
+				sensorTABLE[uid]:protocolUnit(unit)	
+			end										
+
 
 
 		end
