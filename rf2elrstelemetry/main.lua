@@ -16,8 +16,7 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
 
 		local uid = id .. "_" .. instance
-		local decimalTable = {10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000}
-		
+	
 		if sensorRecheck[uid] == nil then
 			sensorRecheck[uid] = os.clock()
 		end
@@ -50,6 +49,8 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 		
 			if dec ~= nil then
 				sensorTABLE[uid]:decimals(dec)
+				sensorTABLE[uid]:protoocolDecimals(dec)	-- typo until tomorrow in ethos 1.5.10
+				-- sensorTABLE[uid]:protocolDecimals(dec)	
 			end	
 			if unit ~= nil then	
 				sensorTABLE[uid]:unit(unit) 
@@ -58,11 +59,7 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 
 		end
 
-		if sensorTABLE[uid] ~= nil then
-			-- scale the value if we use decimals or they will not match
-			if dec ~= nil and value ~= nil and dec > 0 then		
-					value = value / decimalTable[dec]	
-			end				
+		if sensorTABLE[uid] ~= nil then		
 			sensorTABLE[uid]:value(value)	
 		end
 		
