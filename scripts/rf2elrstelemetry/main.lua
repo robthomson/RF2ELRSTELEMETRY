@@ -49,8 +49,7 @@ local function setTelemetryValue(id, subId, instance, value , unit , dec , name)
 		
 			if dec ~= nil then
 				sensorTABLE[uid]:decimals(dec)
-				sensorTABLE[uid]:protoocolDecimals(dec)	-- typo until tomorrow in ethos 1.5.10
-				-- sensorTABLE[uid]:protocolDecimals(dec)	
+				sensorTABLE[uid]:protocolDecimals(dec)	
 			end	
 			if unit ~= nil then	
 				sensorTABLE[uid]:unit(unit) 
