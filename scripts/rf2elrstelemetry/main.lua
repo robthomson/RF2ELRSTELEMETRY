@@ -220,7 +220,7 @@ local RFSensors = {
     -- Main battery current
     [0x0012]  = { name="Curr",    unit=UNIT_AMPS,                prec=2,    dec=decU16  },
     -- Main battery used capacity
-    [0x0013]  = { name="Capa",    unit=UNIT_MAH,                 prec=3,    dec=decU16  },
+    [0x0013]  = { name="Capa",    unit=UNIT_MAH,                 prec=0,    dec=decU16  },
     -- Main battery State-of-Charge / fuel level
     [0x0014]  = { name="Fuel",    unit=UNIT_PERCENT,             prec=0,    dec=decU8   },
 
@@ -379,25 +379,37 @@ local RFSensors = {
     [0xFE07]  = { name="DBG7",    unit=UNIT_RAW,                 prec=0,    dec=decS32  },
 }
 
+local telemetryFrameId = 0
+local telemetryFrameSkip = 0
+local telemetryFrameCount = 0
+
 local function crossfirePop()
     local command, data = crossfireTelemetryPop()
-	
     if command and data then
         if command == CRSF_FRAME_CUSTOM_TELEM then
-            local sid, val
+            local fid, sid, val
             local ptr = 3
-            while ptr <= #data do
+            fid,ptr = decU8(data, ptr)
+            local delta = bit32.band(fid - telemetryFrameId, 0xFF)
+            if delta > 1 then
+                telemetryFrameSkip = telemetryFrameSkip + 1
+            end
+            telemetryFrameId = fid
+            telemetryFrameCount = telemetryFrameCount + 1
+            while ptr < #data do
                 sid,ptr = decU16(data, ptr)
                 local sensor = RFSensors[sid]
                 if sensor then
                     val,ptr = sensor.dec(data, ptr)
-                    if val then				
+                    if val then
                         setTelemetryValue(sid, 0, 0, val, sensor.unit, sensor.prec, sensor.name)
                     end
                 else
                     break
                 end
             end
+            setTelemetryValue(0xFE11, 0, 0, telemetryFrameCount, UNIT_RAW, 0, "TCnt")
+            setTelemetryValue(0xFE12, 0, 0, telemetryFrameSkip, UNIT_RAW, 0, "TSkp")
         end
         return true
     end
