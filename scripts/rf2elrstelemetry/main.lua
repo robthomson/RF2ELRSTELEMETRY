@@ -389,18 +389,18 @@ local function crossfirePop()
         if command == CRSF_FRAME_CUSTOM_TELEM then
             local fid, sid, val
             local ptr = 3
-            fid,ptr = decU8(data, ptr)
-            local delta = bit32.band(fid - telemetryFrameId, 0xFF)
+            fid, ptr = decU8(data, ptr)
+            local delta = (fid - telemetryFrameId) & 0xFF  -- Replace bit32.band with native bitwise AND
             if delta > 1 then
                 telemetryFrameSkip = telemetryFrameSkip + 1
             end
             telemetryFrameId = fid
             telemetryFrameCount = telemetryFrameCount + 1
             while ptr < #data do
-                sid,ptr = decU16(data, ptr)
+                sid, ptr = decU16(data, ptr)
                 local sensor = RFSensors[sid]
                 if sensor then
-                    val,ptr = sensor.dec(data, ptr)
+                    val, ptr = sensor.dec(data, ptr)
                     if val then
                         setTelemetryValue(sid, 0, 0, val, sensor.unit, sensor.prec, sensor.name)
                     end
@@ -415,6 +415,7 @@ local function crossfirePop()
     end
     return false
 end
+
 
 local function crossfirePopAll()
   while crossfirePop() do end
