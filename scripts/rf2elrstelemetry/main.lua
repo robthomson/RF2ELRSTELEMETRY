@@ -21,9 +21,11 @@ local function create()
 	return rf2elrstelemetry.create()
 end
 
-system.registerTask({
-	name=config.taskName, 
-	key=config.taskKey, 
-	wakeup=wakeup})
+local function init()
+	system.registerTask({
+		name=config.taskName,
+		key=config.taskKey,
+		wakeup=wakeup})
+end
 
 return {init = init}
