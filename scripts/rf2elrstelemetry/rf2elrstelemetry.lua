@@ -7,7 +7,7 @@ local CRSF_FRAME_CUSTOM_TELEM   = 0x88
 
 rf2elrstelemetry.sensorTABLE = {}
 rf2elrstelemetry.sensorRecheck = {}
-rf2elrstelemetry.sensorRecheckInterval = 60 
+rf2elrstelemetry.sensorRecheckInterval = 60
 rf2elrstelemetry.initialiseTime = 30
 rf2elrstelemetry.initialise = os.clock()
 
@@ -16,7 +16,7 @@ function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , 
 	if id ~= nil then
 
 		local uid = id .. "_" .. instance
-	
+
 		if rf2elrstelemetry.sensorRecheck[uid] == nil then
 			rf2elrstelemetry.sensorRecheck[uid] = os.clock()
 		end
@@ -26,7 +26,7 @@ function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , 
 		-- this simple ensures that all sensors are gathered on first power uptime
 		-- after that we drop to low priority checking set by rf2elrstelemetry.sensorRecheckInterval
 		if (os.clock() >= (rf2elrstelemetry.sensorRecheck[uid] + rf2elrstelemetry.sensorRecheckInterval)) or (os.clock() <= (rf2elrstelemetry.initialise) + rf2elrstelemetry.initialiseTime) then
-			
+
 			print("Checking sensor exists: [" .. name .. "]")
 			rf2elrstelemetry.sensorTABLE[uid] = {}
 			rf2elrstelemetry.sensorTABLE[uid]  = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = id})
@@ -39,31 +39,31 @@ function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , 
 				rf2elrstelemetry.sensorTABLE[uid]:name(name)
 				rf2elrstelemetry.sensorTABLE[uid]:appId(id)
 				rf2elrstelemetry.sensorTABLE[uid]:physId(instance)
-			end	
-		
+			end
+
 			-- we always re-set these values below on a check cycle.
 			-- this is to ensure that if a user edits the sensor that
 			-- we put it back to the correct settings.
-			rf2elrstelemetry.sensorTABLE[uid]:maximum(65000)	
-			rf2elrstelemetry.sensorTABLE[uid]:minimum(-65000)	
-		
+			rf2elrstelemetry.sensorTABLE[uid]:maximum(65000)
+			rf2elrstelemetry.sensorTABLE[uid]:minimum(-65000)
+
 			if dec ~= nil then
 				rf2elrstelemetry.sensorTABLE[uid]:decimals(dec)
-				rf2elrstelemetry.sensorTABLE[uid]:protocolDecimals(dec)	
-			end	
-			if unit ~= nil then	
-				rf2elrstelemetry.sensorTABLE[uid]:unit(unit) 
-				rf2elrstelemetry.sensorTABLE[uid]:protocolUnit(unit)	
-			end	
+				rf2elrstelemetry.sensorTABLE[uid]:protocolDecimals(dec)
+			end
+			if unit ~= nil then
+				rf2elrstelemetry.sensorTABLE[uid]:unit(unit)
+				rf2elrstelemetry.sensorTABLE[uid]:protocolUnit(unit)
+			end
 
 		end
 
-		if rf2elrstelemetry.sensorTABLE[uid] ~= nil then		
-			rf2elrstelemetry.sensorTABLE[uid]:value(value)	
+		if rf2elrstelemetry.sensorTABLE[uid] ~= nil then
+			rf2elrstelemetry.sensorTABLE[uid]:value(value)
 		end
-		
-			
-	end		
+
+
+	end
 end
 
 function rf2elrstelemetry.crossfireTelemetryPop()
@@ -221,20 +221,20 @@ rf2elrstelemetry.RFSensors = {
     [0x0001]  = { name="BEAT",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU16  },
 
     -- Main battery voltage
-    [0x0011]  = { name="Vbat",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0011]  = { name="Vbat",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- Main battery current
-    [0x0012]  = { name="Curr",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0012]  = { name="Curr",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- Main battery used capacity
-    [0x0013]  = { name="Capa",    unit=UNIT_MAH,                 prec=0,    dec=rf2elrstelemetry.decU16  },
+    [0x0013]  = { name="Capa",    unit=UNIT_MILLIAMPERE_HOUR,    prec=0,    dec=rf2elrstelemetry.decU16  },
     -- Main battery State-of-Charge / fuel level
     [0x0014]  = { name="Fuel",    unit=UNIT_PERCENT,             prec=0,    dec=rf2elrstelemetry.decU8   },
 
     -- Main battery cell count
     [0x0020]  = { name="Cel#",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU8   },
     -- Main battery cell voltage (minimum/average)
-    [0x0020]  = { name="Vcel",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decCellV },
+    [0x0020]  = { name="Vcel",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decCellV },
     -- Main battery cell voltages
-    [0x002F]  = { name="Cels",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decCells },
+    [0x002F]  = { name="Cels",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decCells },
 
     -- Control Combined (hires)
     [0x0030]  = { name="Ctrl",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decControl },
@@ -250,13 +250,13 @@ rf2elrstelemetry.RFSensors = {
     [0x0035]  = { name="Thr",     unit=UNIT_PERCENT,             prec=0,    dec=rf2elrstelemetry.decS8   },
 
     -- ESC voltage
-    [0x0041]  = { name="EscV",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0041]  = { name="EscV",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- ESC current
-    [0x0042]  = { name="EscI",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0042]  = { name="EscI",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- ESC capacity/consumption
-    [0x0043]  = { name="EscC",    unit=UNIT_MAH,                 prec=0,    dec=rf2elrstelemetry.decU16  },
+    [0x0043]  = { name="EscC",    unit=UNIT_MILLIAMPERE_HOUR,    prec=0,    dec=rf2elrstelemetry.decU16  },
     -- ESC eRPM
-    [0x0044]  = { name="EscR",    unit=UNIT_RPMS,                prec=0,    dec=rf2elrstelemetry.decU16  },
+    [0x0044]  = { name="EscR",    unit=UNIT_RPM,                 prec=0,    dec=rf2elrstelemetry.decU16  },
     -- ESC PWM/Power
     [0x0045]  = { name="EscP",    unit=UNIT_PERCENT,             prec=1,    dec=rf2elrstelemetry.decU16  },
     -- ESC throttle
@@ -266,31 +266,31 @@ rf2elrstelemetry.RFSensors = {
     -- ESC / BEC temperature
     [0x0048]  = { name="BecT",    unit=UNIT_CELSIUS,             prec=0,    dec=rf2elrstelemetry.decU8   },
     -- ESC / BEC voltage
-    [0x0049]  = { name="BecV",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0049]  = { name="BecV",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- ESC / BEC current
-    [0x004A]  = { name="BecI",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x004A]  = { name="BecI",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- ESC Status Flags
     [0x004E]  = { name="EscF",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU32  },
     -- ESC Model Id
     [0x004F]  = { name="Esc#",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU8   },
 
     -- Combined ESC voltage
-    [0x0080]  = { name="Vesc",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0080]  = { name="Vesc",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- BEC voltage
-    [0x0081]  = { name="Vbec",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0081]  = { name="Vbec",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- BUS voltage
-    [0x0082]  = { name="Vbus",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0082]  = { name="Vbus",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
     -- MCU voltage
-    [0x0083]  = { name="Vmcu",    unit=UNIT_VOLTS,               prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0083]  = { name="Vmcu",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decU16  },
 
     -- Combined ESC current
-    [0x0090]  = { name="Iesc",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0090]  = { name="Iesc",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- BEC current
-    [0x0091]  = { name="Ibec",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0091]  = { name="Ibec",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- BUS current
-    [0x0092]  = { name="Ibus",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0092]  = { name="Ibus",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
     -- MCU current
-    [0x0093]  = { name="Imcu",    unit=UNIT_AMPS,                prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0093]  = { name="Imcu",    unit=UNIT_AMPERE,              prec=2,    dec=rf2elrstelemetry.decU16  },
 
     -- Combined ESC temeperature
     [0x00A0]  = { name="Tesc",    unit=UNIT_CELSIUS,             prec=0,    dec=rf2elrstelemetry.decU8   },
@@ -302,14 +302,14 @@ rf2elrstelemetry.RFSensors = {
     -- Heading (combined gyro+mag+GPS)
     [0x00B1]  = { name="Hdg",     unit=UNIT_DEGREE,              prec=1,    dec=rf2elrstelemetry.decS16  },
     -- Altitude (combined baro+GPS)
-    [0x00B2]  = { name="Alt",     unit=UNIT_METERS,              prec=2,    dec=rf2elrstelemetry.decS24  },
+    [0x00B2]  = { name="Alt",     unit=UNIT_METER,               prec=2,    dec=rf2elrstelemetry.decS24  },
     -- Variometer (combined baro+GPS)
-    [0x00B3]  = { name="Var",     unit=UNIT_METERS_PER_SECOND,   prec=2,    dec=rf2elrstelemetry.decS16  },
+    [0x00B3]  = { name="Var",     unit=UNIT_METER_PER_SECOND,    prec=2,    dec=rf2elrstelemetry.decS16  },
 
     -- Headspeed
-    [0x00C0]  = { name="Hspd",    unit=UNIT_RPMS,                prec=0,    dec=rf2elrstelemetry.decU16  },
+    [0x00C0]  = { name="Hspd",    unit=UNIT_RPM,                 prec=0,    dec=rf2elrstelemetry.decU16  },
     -- Tailspeed
-    [0x00C1]  = { name="Tspd",    unit=UNIT_RPMS,                prec=0,    dec=rf2elrstelemetry.decU16  },
+    [0x00C1]  = { name="Tspd",    unit=UNIT_RPM,                 prec=0,    dec=rf2elrstelemetry.decU16  },
 
     -- Attitude (hires combined)
     [0x0100]  = { name="Attd",    unit=UNIT_DEGREE,              prec=1,    dec=rf2elrstelemetry.decAttitude },
@@ -340,15 +340,15 @@ rf2elrstelemetry.RFSensors = {
     -- GPS Coordinates
     [0x0125]  = { name="GPS",     unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decLatLong },
     -- GPS altitude
-    [0x0126]  = { name="GAlt",    unit=UNIT_METERS,              prec=1,    dec=rf2elrstelemetry.decS16  },
+    [0x0126]  = { name="GAlt",    unit=UNIT_METER,               prec=1,    dec=rf2elrstelemetry.decS16  },
     -- GPS heading
     [0x0127]  = { name="GHdg",    unit=UNIT_DEGREE,              prec=1,    dec=rf2elrstelemetry.decS16  },
     -- GPS ground speed
-    [0x0128]  = { name="GSpd",    unit=UNIT_METERS_PER_SECOND,   prec=2,    dec=rf2elrstelemetry.decU16  },
+    [0x0128]  = { name="GSpd",    unit=UNIT_METER_PER_SECOND,    prec=2,    dec=rf2elrstelemetry.decU16  },
     -- GPS home distance
-    [0x0129]  = { name="GDis",    unit=UNIT_METERS,              prec=1,    dec=rf2elrstelemetry.decU16  },
+    [0x0129]  = { name="GDis",    unit=UNIT_METER,               prec=1,    dec=rf2elrstelemetry.decU16  },
     -- GPS home direction
-    [0x012A]  = { name="GDir",    unit=UNIT_METERS,              prec=1,    dec=rf2elrstelemetry.decU16  },
+    [0x012A]  = { name="GDir",    unit=UNIT_METER,               prec=1,    dec=rf2elrstelemetry.decU16  },
 
     -- CPU load
     [0x0141]  = { name="CPU%",    unit=UNIT_PERCENT,             prec=0,    dec=rf2elrstelemetry.decU8   },

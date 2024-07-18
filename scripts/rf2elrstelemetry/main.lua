@@ -3,7 +3,7 @@ local config = {}
 config.taskName = "RF2 ELRS Telemetry"
 config.taskKey = "pasfkas"
 config.taskDir = "/scripts/rf2elrstelemetry/"
-config.useCompiler = true
+config.useCompiler = false
 
 local compile = assert(loadfile(config.taskDir .. "compile.lua"))(config)
 
