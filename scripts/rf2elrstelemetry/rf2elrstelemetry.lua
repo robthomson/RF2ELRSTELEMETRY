@@ -15,7 +15,7 @@ rf2elrstelemetry.initialise = os.clock()
 function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
 
-        local uid = id .. "_" .. instance .. "_" .. name:gsub('%W','')
+        local uid = id .. "_" .. instance
 
 		if rf2elrstelemetry.sensorRecheck[uid] == nil then
 			rf2elrstelemetry.sensorRecheck[uid] = os.clock()
