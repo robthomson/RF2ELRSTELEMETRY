@@ -420,8 +420,8 @@ function rf2elrstelemetry.crossfirePop()
                     break
                 end
             end
-            rf2elrstelemetry.setTelemetryValue(0xFF01, 0, 0, telemetryFrameCount, UNIT_RAW, 0, "*Cnt")
-            rf2elrstelemetry.setTelemetryValue(0xFF02, 0, 0, telemetryFrameSkip, UNIT_RAW, 0, "*Skp")
+            rf2elrstelemetry.setTelemetryValue(0xFF01, 0, 0, rf2elrstelemetry.telemetryFrameCount, UNIT_RAW, 0, "*Cnt")
+            rf2elrstelemetry.setTelemetryValue(0xFF02, 0, 0, rf2elrstelemetry.telemetryFrameSkip, UNIT_RAW, 0, "*Skp")
         end
         return true
     end
