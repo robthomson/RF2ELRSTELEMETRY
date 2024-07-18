@@ -3,7 +3,7 @@ local config = {}
 config.taskName = "RF2 ELRS Telemetry"
 config.taskKey = "pasfkas"
 config.taskDir = "/scripts/rf2elrstelemetry/"
-config.useCompiler = false
+config.useCompiler = true
 
 local compile = assert(loadfile(config.taskDir .. "compile.lua"))(config)
 
@@ -21,9 +21,11 @@ local function create()
 	return rf2elrstelemetry.create()
 end
 
-system.registerTask({
-	name=config.taskName, 
-	key=config.taskKey, 
-	wakeup=wakeup})
+local function init()
+	system.registerTask({
+		name=config.taskName,
+		key=config.taskKey,
+		wakeup=wakeup})
+end
 
 return {init = init}
