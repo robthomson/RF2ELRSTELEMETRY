@@ -15,9 +15,9 @@ rf2elrstelemetry.initialise = os.clock()
 function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
 
-		local uid = id .. "_" .. instance .. "_" .. name:gsub('%W','')
-		
-		
+
+    local uid = id .. "_" .. instance
+
 
 		if rf2elrstelemetry.sensorRecheck[uid] == nil then
 			rf2elrstelemetry.sensorRecheck[uid] = os.clock()
@@ -161,7 +161,7 @@ function rf2elrstelemetry.decCells(data, pos)
         val,pos = rf2elrstelemetry.decU8(data,pos)
         val = val > 0 and val + 200 or 0
         vol = rf2elrstelemetry.lshift(cnt,24) + rf2elrstelemetry.lshift(i-1, 16) + val
-        rf2elrstelemetry.setTelemetryValue(0x0021, 0, 0, vol, UNIT_CELLS, 2, "Cels")
+        rf2elrstelemetry.setTelemetryValue(0x002F, 0, 0, vol, UNIT_CELLS, 2, "Cels")
     end
     return nil, pos
 end
@@ -234,7 +234,7 @@ rf2elrstelemetry.RFSensors = {
     -- Main battery cell count
     [0x0020]  = { name="Cel#",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU8   },
     -- Main battery cell voltage (minimum/average)
-    [0x0020]  = { name="Vcel",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decCellV },
+    [0x0021]  = { name="Vcel",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decCellV },
     -- Main battery cell voltages
     [0x002F]  = { name="Cels",    unit=UNIT_VOLT,                prec=2,    dec=rf2elrstelemetry.decCells },
 
