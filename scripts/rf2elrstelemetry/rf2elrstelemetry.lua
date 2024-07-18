@@ -14,10 +14,7 @@ rf2elrstelemetry.initialise = os.clock()
 
 function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value , unit , dec , name)
 	if id ~= nil then
-
-
-    local uid = id .. "_" .. instance
-
+		local uid = id .. "_" .. instance
 
 		if rf2elrstelemetry.sensorRecheck[uid] == nil then
 			rf2elrstelemetry.sensorRecheck[uid] = os.clock()
@@ -99,6 +96,9 @@ function rf2elrstelemetry.extract(n, field, width)
     return (n >> f) & rf2elrstelemetry.mask(w)
 end
 
+function rf2elrstelemetry.decNil(data, pos)
+    return nil, pos
+end
 
 function rf2elrstelemetry.decU8(data, pos)
     return data[pos], pos+1
@@ -219,6 +219,8 @@ function rf2elrstelemetry.decAdjFunc(data, pos)
 end
 
 rf2elrstelemetry.RFSensors = {
+    -- No data
+    [0x0000]  = { name="NULL",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decNil  },
     -- Heartbeat (millisecond uptime % 60000)
     [0x0001]  = { name="BEAT",    unit=UNIT_RAW,                 prec=0,    dec=rf2elrstelemetry.decU16  },
 
