@@ -234,10 +234,10 @@ rf2elrstelemetry.RFSensors = {
 
     -- Control Combined (hires)
     [0x0030] = {name = "Ctrl", unit = UNIT_RAW, prec = 0, dec = rf2elrstelemetry.decControl},
-    -- Roll Control angle
-    [0x0031] = {name = "CRol", unit = UNIT_DEGREE, prec = 1, dec = rf2elrstelemetry.decS16},
     -- Pitch Control angle
-    [0x0032] = {name = "CPtc", unit = UNIT_DEGREE, prec = 1, dec = rf2elrstelemetry.decS16},
+    [0x0031] = {name = "CPtc", unit = UNIT_DEGREE, prec = 1, dec = rf2elrstelemetry.decS16},
+    -- Roll Control angle
+    [0x0032] = {name = "CRol", unit = UNIT_DEGREE, prec = 1, dec = rf2elrstelemetry.decS16},
     -- Yaw Control angle
     [0x0033] = {name = "CYaw", unit = UNIT_DEGREE, prec = 1, dec = rf2elrstelemetry.decS16},
     -- Collective Control angle
