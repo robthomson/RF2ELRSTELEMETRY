@@ -23,10 +23,13 @@ function compile.loadScript(script)
             system.compile(script)
             os.rename(script .. 'c', cachefile)
         end
-        print(cachefile)
+        --print(cachefile)
         return loadfile(cachefile)
     else
-        print(script)
+        -- print(script)
+        if compile.file_exists(cachefile) == true then
+            os.remove(cachefile)
+        end		
         return loadfile(script)
     end
 
