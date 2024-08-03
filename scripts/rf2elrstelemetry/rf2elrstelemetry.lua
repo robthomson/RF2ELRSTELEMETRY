@@ -195,9 +195,9 @@ function rf2elrstelemetry.decLatLong(data, pos)
     local lat, lon
     lat, pos = rf2elrstelemetry.decS32(data, pos)
     lon, pos = rf2elrstelemetry.decS32(data, pos)
-    rf2elrstelemetry.setTelemetryValue(0x1070, 0, 0, 0, UNIT_GPS, 0, "GPS")
-    rf2elrstelemetry.setTelemetryValue(0x1070, 0, 0, lat, UNIT_GPS_LATITUDE)
-    rf2elrstelemetry.setTelemetryValue(0x1070, 0, 0, lon, UNIT_GPS_LONGITUDE)
+    rf2elrstelemetry.setTelemetryValue(0x1125, 0, 0, 0, UNIT_GPS, 0, "GPS")
+    rf2elrstelemetry.setTelemetryValue(0x1125, 0, 0, lat, UNIT_GPS_LATITUDE)
+    rf2elrstelemetry.setTelemetryValue(0x1125, 0, 0, lon, UNIT_GPS_LONGITUDE)
     return nil, pos
 end
 
