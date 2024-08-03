@@ -119,7 +119,7 @@ end
 
 function rf2elrstelemetry.decS12S12(data, pos)
     local a, b, ptr = rf2elrstelemetry.decU12U12(data, pos)
-    return a < 0x1800 and a or a - 0x1000, b < 0x1800 and b or b - 0x1000, ptr
+    return a < 0x0800 and a or a - 0x1000, b < 0x0800 and b or b - 0x1000, ptr
 end
 
 function rf2elrstelemetry.decU24(data, pos)
