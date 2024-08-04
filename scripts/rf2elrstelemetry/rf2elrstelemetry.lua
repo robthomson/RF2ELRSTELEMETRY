@@ -205,8 +205,8 @@ function rf2elrstelemetry.decAdjFunc(data, pos)
     local fun, val
     fun, pos = rf2elrstelemetry.decU16(data, pos)
     val, pos = rf2elrstelemetry.decS32(data, pos)
-    rf2elrstelemetry.setTelemetryValue(0x1220, 0, 0, fun, UNIT_RAW, 0, "AdjF")
-    rf2elrstelemetry.setTelemetryValue(0x1220, 1, 0, val, UNIT_RAW, 0, "AdjV")
+    rf2elrstelemetry.setTelemetryValue(0x1221, 0, 0, fun, UNIT_RAW, 0, "AdjF")
+    rf2elrstelemetry.setTelemetryValue(0x1222, 1, 0, val, UNIT_RAW, 0, "AdjV")
     return nil, pos
 end
 
@@ -222,7 +222,7 @@ rf2elrstelemetry.RFSensors = {
     [0x1012] = {name = "Curr", unit = UNIT_AMPERE, prec = 2, dec = rf2elrstelemetry.decU16},
     -- Main battery used capacity
     [0x1013] = {name = "Capa", unit = UNIT_MILLIAMPERE_HOUR, prec = 0, dec = rf2elrstelemetry.decU16},
-    -- Main battery State-of-Charge / fuel level
+    -- Main battery charge / fuel level
     [0x1014] = {name = "Bat%", unit = UNIT_PERCENT, prec = 0, dec = rf2elrstelemetry.decU8},
 
     -- Main battery cell count
