@@ -5,29 +5,26 @@ rf2elrstelemetry = {}
 
 local CRSF_FRAME_CUSTOM_TELEM = 0x88
 
+
 rf2elrstelemetry.sensorTABLE = {}
 rf2elrstelemetry.sensorRecheck = {}
-rf2elrstelemetry.sensorRecheckInterval = 60
-rf2elrstelemetry.initialiseTime = 30
+rf2elrstelemetry.initialiseTime = 15
 rf2elrstelemetry.initialise = os.clock()
+rf2elrstelemetry.initialiseSensors = false
+
 
 function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value, unit, dec, name)
-    if id ~= nil then
-        local uid = id .. "_" .. instance
 
-        if rf2elrstelemetry.sensorRecheck[uid] == nil then rf2elrstelemetry.sensorRecheck[uid] = os.clock() end
-
-        -- check every now and again that the sensor exists.  if not - create it.
-        -- we run this cycle every loop until rf2elrstelemetry.initialiseTime expires.
-        -- this simple ensures that all sensors are gathered on first power uptime
-        -- after that we drop to low priority checking set by rf2elrstelemetry.sensorRecheckInterval
-        if (os.clock() >= (rf2elrstelemetry.sensorRecheck[uid] + rf2elrstelemetry.sensorRecheckInterval)) or (os.clock() <= (rf2elrstelemetry.initialise) + rf2elrstelemetry.initialiseTime) then
-
+	local uid = id .. "_" .. instance
+		
+	if id ~= nil then
+	
+		if rf2elrstelemetry.initialiseSensors == true then
+	
             print("Checking sensor exists: [" .. name .. "]")
             rf2elrstelemetry.sensorTABLE[uid] = {}
             rf2elrstelemetry.sensorTABLE[uid] = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = id})
-            rf2elrstelemetry.sensorRecheck[uid] = os.clock()
-
+			
             -- create sensor if it does not exist
             if rf2elrstelemetry.sensorTABLE[uid] == nil then
                 print("Creating sensor: [" .. name .. "]")
@@ -52,11 +49,11 @@ function rf2elrstelemetry.setTelemetryValue(id, subId, instance, value, unit, de
                 rf2elrstelemetry.sensorTABLE[uid]:protocolUnit(unit)
             end
 
-        end
+		end
 
         if rf2elrstelemetry.sensorTABLE[uid] ~= nil then rf2elrstelemetry.sensorTABLE[uid]:value(value) end
-
-    end
+		
+	end
 end
 
 function rf2elrstelemetry.crossfireTelemetryPop()
@@ -405,6 +402,12 @@ rf2elrstelemetry.telemetryFrameSkip = 0
 rf2elrstelemetry.telemetryFrameCount = 0
 
 function rf2elrstelemetry.crossfirePop()
+
+	-- break out of loop if we loose rssi
+	if rf2elrstelemetry.rssiSensor == nil and not rf2elrstelemetry.rssiSensor:state() then
+		return false
+	end
+
     local command, data = rf2elrstelemetry.crossfireTelemetryPop()
     if command and data then
         if command == CRSF_FRAME_CUSTOM_TELEM then
@@ -435,7 +438,26 @@ function rf2elrstelemetry.crossfirePop()
 end
 
 function rf2elrstelemetry.crossfirePopAll()
-    while rf2elrstelemetry.crossfirePop() do end
+
+		local rssiNames = {"Rx RSSI1", "Rx RSSI2"}
+		for i, name in ipairs(rssiNames) do
+			rf2elrstelemetry.rssiSensor = system.getSource(name)
+		end
+		if rf2elrstelemetry.rssiSensor ~= nil and rf2elrstelemetry.rssiSensor:state() then
+			if (os.clock() <= (rf2elrstelemetry.initialise) + rf2elrstelemetry.initialiseTime) then
+				rf2elrstelemetry.initialiseSensors = true
+			else
+				rf2elrstelemetry.initialiseSensors = false
+			end
+			
+			while rf2elrstelemetry.crossfirePop() do end
+			 
+		else	
+			-- link is down
+			rf2elrstelemetry.initialise = os.clock()
+			rf2elrstelemetry.initialiseSensors = false
+		end
+
 end
 
 return rf2elrstelemetry
