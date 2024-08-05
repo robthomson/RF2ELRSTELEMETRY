@@ -407,6 +407,11 @@ function rf2elrstelemetry.crossfirePop()
 	if rf2elrstelemetry.rssiSensor == nil and not rf2elrstelemetry.rssiSensor:state() then
 		return false
 	end
+	
+	-- break out of loop if configurator is running
+	if ELRS_PAUSE_TELEMETRY ~= nil and ELRS_PAUSE_TELEMETRY == true then
+		return false
+	end
 
     local command, data = rf2elrstelemetry.crossfireTelemetryPop()
     if command and data then
