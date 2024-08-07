@@ -8,42 +8,52 @@ local sensors = {}
 sensors['uid'] = {}
 sensors['lastvalue'] = {}
 
+local rssiSensor = nil
 
 local CRSF_FRAME_CUSTOM_TELEM = 0x88
-local lastRun = os.clock()
 
 
 local function createTelemetrySensor(uid, name, unit, dec, value, min, max)
-    local sensor = model.createSensor()
-    sensor:name(name)
-    sensor:appId(uid)
-    sensor:module(1)
-    sensor:minimum(min or -2147483647)
-    sensor:maximum(max or  2147483647)
+	sensors['uid'][uid] = model.createSensor()
+    sensors['uid'][uid]:name(name)
+    sensors['uid'][uid]:appId(uid)
+    sensors['uid'][uid]:module(1)
+    sensors['uid'][uid]:minimum(min or -2147483647)
+    sensors['uid'][uid]:maximum(max or  2147483647)
     if dec then
-        sensor:decimals(dec)
-        sensor:protocolDecimals(dec)
+        sensors['uid'][uid]:decimals(dec)
+        sensors['uid'][uid]:protocolDecimals(dec)
     end
     if unit then
-        sensor:unit(unit)
-        sensor:protocolUnit(unit)
+        sensors['uid'][uid]:unit(unit)
+        sensors['uid'][uid]:protocolUnit(unit)
     end
     if value then
-        sensor:value(value)
+        sensors['uid'][uid]:value(value)
     end
 end
 
 local function setTelemetryValue(uid, subid, instance, value, unit, dec, name, min, max)
+
 	if sensors['uid'][uid] == nil then
 		sensors['uid'][uid] = system.getSource({category = CATEGORY_TELEMETRY_SENSOR, appId = uid})
+		if sensors['uid'][uid] == nil then	
+			print("Create sensor: " .. uid)
+			createTelemetrySensor(uid, name, unit, dec, value, min, max)
+		end	
 	else 
 		if sensors['uid'][uid] then
 			if sensors['lastvalue'][uid] == nil or sensors['lastvalue'][uid] ~= value then
 				sensors['uid'][uid]:value(value)
 			end	
-		else
-			createTelemetrySensor(uid, name, unit, dec, value, min, max)
-		end
+
+			-- detect if sensor has been deleted or is missing after initial creation
+			if sensors['uid'][uid]:state() == false then
+				sensors['uid'][uid] = nil
+				sensors['lastvalue'][uid] = nil
+			end
+			
+		end	
 	end	
 end
 
@@ -402,10 +412,14 @@ function rf2elrstelemetry.crossfirePop()
 end
 
 function rf2elrstelemetry.run()
-	if lastRun <= os.clock() - 0.5 then
-		lastRun = os.clock()
-		while not ELRS_PAUSE_TELEMETRY and rf2elrstelemetry.crossfirePop() do end
-	end	
+
+		local rssiNames = {"Rx RSSI1", "Rx RSSI2"}
+		for i, name in ipairs(rssiNames) do
+			rssiSensor = system.getSource(name)
+		end
+		if rssiSensor ~= nil and rssiSensor:state() then
+			while not ELRS_PAUSE_TELEMETRY and rf2elrstelemetry.crossfirePop() do end
+		end
 end
 
 return rf2elrstelemetry
